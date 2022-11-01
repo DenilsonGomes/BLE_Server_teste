@@ -96,7 +96,18 @@ class SecurityCallback : public BLESecurityCallbacks {
 //      Serial.println(advertisedDevice.getRSSI());
 //      Serial.print("Address: ");
 //      Serial.println(advertisedDevice.getAddress().toString().c_str());
-      
+
+      // Converter bd_addr para string (uint8_t [ESP_BD_ADDR_LEN})
+      //Serial.print("bd_addr: ");Serial.println(cmpl.bd_addr.toString().c_str());
+      Serial.print("key_present: ");Serial.println(cmpl.key_present);
+      // Converter key para string (uint8_t [ESP_BT_OCTET16_LEN})
+      //Serial.println(cmpl.key);
+      Serial.print("key_type: ");Serial.println(cmpl.key_type);
+      Serial.print("success: ");Serial.println(cmpl.success);
+      Serial.print("fail_reason: ");Serial.println(cmpl.fail_reason);
+      Serial.print("addr_type: ");Serial.println(cmpl.addr_type);
+      Serial.print("dev_type: ");Serial.println(cmpl.dev_type);
+      Serial.print("auth_mode: ");Serial.println(cmpl.auth_mode);
       // Solicita leitura de RSSI do disposito remoto (retorna no ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT)
       esp_err_t ret = esp_ble_gap_read_rssi(cmpl.bd_addr);
 //      Serial.println(ret);
@@ -156,13 +167,17 @@ void bleInit(){
 static void ble_task(void *arg){
   
   uint32_t value = 0;
-
+  int connectedCount = 0;
+  Serial.printf("connectedCount: %d\n", connectedCount);
   while(1){
     
       xSemaphoreTake(xGuiSemaphore, portMAX_DELAY);
-      int connectedCount = pServer->getConnectedCount();
-       Serial.printf("connectedCount: %d\n", connectedCount);
-  
+      
+      if(connectedCount != pServer->getConnectedCount()){
+        connectedCount = pServer->getConnectedCount();
+        Serial.printf("connectedCount: %d\n", connectedCount);
+      }
+        
       if (connectedCount >0) { 
           pCharacteristic->setValue((uint8_t*)&value, 4);
           pCharacteristic->notify();   
